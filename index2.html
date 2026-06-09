@@ -41,21 +41,27 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    
+    // 1. ADIM: Google Analytics Modülünü İçe Aktar
+    import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
-    // BURAYI KENDİ BİLGİLERİNLE DOLDUR
+    // Kendi Bilgileriniz
     const firebaseConfig = {
         apiKey: "AIzaSyBI5AA7Y2Io3K_lx15oL7viw8M1RoXLftc",
-  authDomain: "ornekweb-f007c.firebaseapp.com",
-  projectId: "ornekweb-f007c",
-  storageBucket: "ornekweb-f007c.firebasestorage.app",
-  messagingSenderId: "797710830614",
-  appId: "1:797710830614:web:813ee61412df64c87cb937",
-  measurementId: "G-N46JXTXXBZ"
+        authDomain: "ornekweb-f007c.firebaseapp.com",
+        projectId: "ornekweb-f007c",
+        storageBucket: "ornekweb-f007c.firebasestorage.app",
+        messagingSenderId: "797710830614",
+        appId: "1:797710830614:web:813ee61412df64c87cb937",
+        measurementId: "G-N46JXTXXBZ"
     };
 
     // Firebase'i Başlat
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
+    
+    // 2. ADIM: Google Analytics'i Başlat
+    const analytics = getAnalytics(app);
 
     // DOM Elementleri
     const emailInp = document.getElementById('email');
@@ -73,8 +79,14 @@
         try {
             await createUserWithEmailAndPassword(auth, emailInp.value, passInp.value);
             messageDiv.innerText = "Kullanıcı oluşturuldu!";
+            
+            // Analytics: Başarılı kayıt olayını izle
+            logEvent(analytics, 'sign_up', { method: 'email' });
         } catch (error) {
             messageDiv.innerText = "Hata: " + error.message;
+            
+            // Analytics: Kayıt hatasını izle
+            logEvent(analytics, 'sign_up_error', { error_message: error.message });
         }
     };
 
@@ -83,8 +95,14 @@
         try {
             await signInWithEmailAndPassword(auth, emailInp.value, passInp.value);
             messageDiv.innerText = "Giriş başarılı!";
+            
+            // Analytics: Başarılı giriş olayını izle
+            logEvent(analytics, 'login', { method: 'email' });
         } catch (error) {
             messageDiv.innerText = "Hata: " + error.message;
+            
+            // Analytics: Giriş hatasını izle
+            logEvent(analytics, 'login_error', { error_message: error.message });
         }
     };
 
@@ -92,9 +110,12 @@
     btnLogout.onclick = async () => {
         await signOut(auth);
         messageDiv.innerText = "Çıkış yapıldı.";
+        
+        // Analytics: Çıkış yapma olayını izle
+        logEvent(analytics, 'logout');
     };
 
-    // Oturum Durumunu Dinle (Kullanıcı giriş yaptı mı?)
+    // Oturum Durumunu Dinle
     onAuthStateChanged(auth, (user) => {
         if (user) {
             authForm.classList.add('hidden');
